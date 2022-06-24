@@ -74,7 +74,7 @@ get_col <- function(ind, formatted_msa) {
     select("index" = all_of(ind), rowname)
 }
 
-a <- get_col("V2", t)
+a <- get_col("V4", t)
 
 
 
@@ -122,11 +122,13 @@ get_mi_v <- Vectorize(get_mi, vectorize.args = c("index1", "index2"))
 test <- t(combn(m, 2)) %>%
   as.data.frame()
 
-test10 <- test[1:100,]
+test10 <- test[1:200,]
   
 
-test_mi_100 <- test %>%
+system.time(
+  test_mi_100 <- test10 %>%
   mutate(mi = get_mi_v(V1, V2, weights, t))
+  )
 
 #saveRDS(test_mi, "/Users/saraharcos/Desktop/Lauring Lab/weighted_mi.RDS")
 
@@ -221,5 +223,16 @@ ggplotly(plog)
 
 ggplotly(p)
 
-
+ta <- a %>% left_join(weights, by = "rowname") %>%
+  select(-rowname) %>%
+  filter(!is.na(date)) %>%
+  group_by(date,inverse_weight, index) %>%
+  tally() %>%
+  mutate(freq = n/sum(n)) %>%
+  mutate(weighted_freq = freq*inverse_weight) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarize(weighted_mean = sum(weighted_freq)) %>%
+  mutate(freqlog = weighted_mean*log(weighted_mean)) %>%
+  summarize(ent  = -sum(freqlog))
 
