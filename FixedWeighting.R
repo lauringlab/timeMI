@@ -31,19 +31,6 @@ h3n2_meaned_mi <- calculate_meaned_mi(h3n2_ha, seq_times)
 saveRDS(h3n2_meaned_mi, "data/MI_results_091122/h3n2_meaned_mi.rds")
 
 
-t <- paste(h3n2_ha[,1], h3n2_ha[,2])
-names(t) <- rownames(h3n2_ha)
-t3 <- t[seq_times_rndate[seq_times_rndate$date == 1968,]$rowname]
-
-t1 <- h3n2_ha[seq_times_rndate[seq_times_rndate$date == 1968,]$rowname,]
-t2 <- paste(t1[,1], t1[,2])
-names(t2) <- rownames(t1)
-
-
-
-
-
-
 run_mi <- function(phy, mat){
   print("calculating mi")
   mi <- calculate_mi(mat)
@@ -192,6 +179,7 @@ get_ent_meaned <- function(pos, df, mat){
     mat_i <- mat[df[df$date == groups[i],]$rowname,]
     if(is.null(dim(mat_i))){
       t1f[[i]] = as.list(1)
+      names(t1f[[i]]) <- mat_i[pos]
     }
     else{
       t1f[[i]] <- as.list(prop.table(table(mat_i[,pos])))
@@ -219,6 +207,7 @@ get_jointent_meaned <- function(a, b, df, mat){
     mat_i <- mat[df[df$date == groups[i],]$rowname,]
     if(is.null(dim(mat_i))){
       t12f[[i]] = as.list(1)
+      names(t12f[[i]]) <- paste(mat_i[a], mat_i[b])
     }
     else{
       t12f[[i]] <- as.list(prop.table(table(paste(mat_i[,a], mat_i[,b]))))
@@ -231,8 +220,3 @@ get_jointent_meaned <- function(a, b, df, mat){
   
   return(sum(-log2(t12frw)*t12frw))
 }
-
-
-
-
-
