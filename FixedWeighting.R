@@ -24,7 +24,7 @@ h3n2_mi_noHA <- calculate_mi(h3n2_pol)
 saveRDS(h3n2_mi_noHA, "data/MI_results_091122/h3n2_mi_noHA.rds")
 
 
-h3n2_meaned_mi_noHA <- calculate_meaned_mi(h3n2_pol, seq_times_noHA)
+h3n2_meaned_mi_noHA <- calculate_meaned_mi(h3n2_pol, seq_times_rndate)
 saveRDS(h3n2_meaned_mi_noHA, "data/MI_results_091122/h3n2_meaned_mi_noHA.rds")
 
 h3n2_meaned_mi <- calculate_meaned_mi(h3n2_ha, seq_times)

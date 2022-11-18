@@ -1,0 +1,256 @@
+---
+title: "SpikeRBD_Simulation"
+author: "Sarah Arcos"
+date: "2022-11-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(Biostrings)
+library(lubridate)
+library(weightedMI)
+library(readxl)
+```
+
+# Goal
+
+ - To compare raw MI with equal-weighted or incidence-weighted MI
+ - To do this, we will use Spike RBD sequences from Washtenaw County as we have good incidence information and sequence coverage
+
+## Wrangle and align SARS-CoV-2 sequences from Washtenaw County
+
+### Step 1: Align sequences from gisaid
+
+ - 2453 sequences on GISAID (see isolate ID supplementary file)
+ - Use: `mafft gisaid_hcov-19_2022_11_17_16.fasta > spike_aligned.fasta`
+ - Subset to get Spike gene
+
+```{r}
+sc2_full <- readDNAStringSet("../data/spike_aligned.fasta")
+spike <- subseq(sc2_full, start = 21516, end = 25370)
+```
+
+### Step 2: Clean out annoying sequences
+
+ - Remove sequences with "N"s
+ - Remove gaps (we will re-align later)
+ - Remove one weird sequence (has large section of gaps)
+
+```{r}
+spike_no_n <- spike[vcountPattern("N", spike) == 0]
+spike_nogap <- DECIPHER::RemoveGaps(spike_no_n, "all")
+spike_nogap2 <- spike_nogap[names(spike_nogap)!="hCoV-19/USA/MI-UM-10043612639/2022|EPI_ISL_9709408|2022-01-15"]
+```
+
+### Step 3: Translate
+
+```{r}
+spiket <- translate(spike_nogap2)
+```
+
+### Step 4: Re-align and get RBD
+
+ - Use `mafft` again
+ - Subset to get RBD
+
+```{r}
+# writeXStringSet(spiket, "/Users/saraharcos/Downloads/spiket.fasta")
+spiket_aligned <- readAAStringSet("../data/spiket_aligned.fasta")
+spikerbd <- subseq(spiket_aligned, start = 324, end = 546)
+```
+
+## Plot number of sequences and disease incidence
+
+ - Focusing on May, 2021 - April, 2022
+ - Incidence data downloaded from [michigan.gov](https://www.michigan.gov/coronavirus/stats)
+ - File: Cases and Deaths by County and by Date of Symptom Onset or by Date of Death
+
+### Step 1: Get dates from sequences and cases
+
+```{r}
+rbd_meta <- tibble(
+  ID = names(spikerbd)) %>%
+  mutate(date = as.Date(str_sub(ID, start = -10)),
+         group = format_ISO8601(date, precision = "ym")) %>%
+  filter(group > "2021-04" & group < "2022-05")
+
+incidence <- read_xlsx("../data/Cases and Deaths by County and by Date of Symptom Onset or by Date of Death2022-11-08.xlsx") %>%
+  filter(COUNTY == "Washtenaw" & CASE_STATUS == "Confirmed" &
+           Date > "2021-05-01" & Date <= "2022-04-30") %>%
+  mutate(group = format_ISO8601(Date, precision = "ym")) %>%
+  select(group, Cases) %>%
+  unique() %>%
+  group_by(group) %>%
+  summarize(case_count = sum(Cases))
+
+wash_cases_isolates <- rbd_meta %>%
+  count(group) %>%
+  full_join(incidence, by = c("group")) %>%
+  ungroup()
+
+head(wash_cases_isolates)
+```
+
+### Step 2: Plot
+
+```{r}
+ggplot(wash_cases_isolates, aes(x = group, y = n))+
+  geom_col(fill = "#939598", alpha = 0.5) +
+  geom_line(aes(y = case_count/20,group = 1), size = 0.3, color = "#F3766E") +
+  geom_point(aes(y = case_count/20), size = 0.5, alpha = 0.5, color = "#F3766E") +
+  xlab("Date") +
+  ylab("Number of sequences") +
+  labs(subtitle = "Distribution of Spike RBD Sequences") +
+  theme_classic() +
+  theme(text = element_text(size = 12), axis.text.x = element_text(angle = 90))
+
+ggsave("../Figures/spikeRBD_incidence.pdf",
+       width = 5, height = 3)
+```
+
+## Calculate raw MI for Spike RBD
+
+```{r message  = FALSE, results = 'hide'}
+rbd_mat <- as.matrix(spikerbd[names(spikerbd) %in% rbd_meta$ID])
+rbdMI <- calculateMI(rbd_mat, ncores = 4)
+```
+
+## Generate sampling frequencies and plot example
+
+```{r}
+rbd_weights <- incidence %>%
+  mutate(weight = case_count/sum(case_count))
+
+h3n2_freqs <- readRDS("../data/seq_times_091122.rda") %>%
+  count(date) %>%
+  mutate(group_count = cut(as.numeric(date), breaks = 12, labels = FALSE)) %>%
+  group_by(group_count) %>%
+  summarize(group_sum = sum(n)) %>%
+  mutate(sampling_freq = group_sum/sum(group_sum)) %>%
+  select(sampling_freq)
+
+sampling_freqs <- bind_cols(rbd_weights, h3n2_freqs) %>%
+  select(group, sampling_freq) %>%
+  left_join(rbd_meta, by = "group") %>%
+  left_join(wash_cases_isolates, by = "group") %>%
+  mutate(sampling_freq = sampling_freq/n)
+
+sample_ex <- sampling_freqs %>%
+  slice_sample(n = 1700, replace = TRUE, weight_by = sampling_freq) %>%
+  count(group)
+
+ggplot(sample_ex, aes(x = group, y = n)) +
+  geom_col(fill = "#939598", alpha = 0.5) +
+  xlab("Date") +
+  ylab("Number of sequences") +
+  labs(subtitle = "Distribution of Spike RBD Sequences after sampling (with replacement)") +
+  theme_classic() +
+  theme(text = element_text(size = 12), axis.text.x = element_text(angle = 90))
+
+ggsave("../Figures/sim_sampled.pdf",
+       width = 5, height = 3)
+```
+
+## Calculate MI for 100 samples
+
+ - Calculate raw MI, equal-weighted MI, and incidence-weighted MI
+
+### Step 1: write sim functions
+
+```{r}
+run_sim <- function(runID, trueMI, mat, df, sfreqs, weights){
+  samp <- sfreqs %>%
+    slice_sample(n = 1700, replace = TRUE, weight_by = sampling_freq)
+  
+  samp_mat <- samp %>%
+    select(ID) %>%
+    left_join(df, by = c("ID" = "rowname")) %>%
+    mutate(ID = 1:1700) %>%
+    column_to_rownames("ID") %>%
+    as.matrix()
+  
+  groups = samp %>%
+    select(group) %>%
+    mutate(ID = 1:1700)
+
+  sMI <- calculateMI(samp_mat, ncores = 6)
+  swMI <- calculateMI(samp_mat, weighted = TRUE, groups = groups,
+                      weights = weights, ncores = 6)
+  seMI <- calculateMI(samp_mat, weighted = TRUE, groups = groups,
+                      weights = "equal", ncores = 6)
+
+  cors <- calculate_cors(trueMI, sMI, swMI, seMI)
+  rm(mat, samp, samp_mat, sMI, swMI, seMI)
+
+  print(paste("Done computing run ", runID, sep = ""))
+  return(cors)
+}
+
+calculate_cors<- function(trueMI, sMI, swMI, seMI){
+  d <- inner_join(trueMI, sMI, by = "Group") %>%
+    inner_join(swMI, by = "Group") %>%
+    inner_join(seMI, by = "Group")
+  
+  t_s <- cor(d$mi.x, d$mi.y, method = "spearman")
+  t_sw <- cor(d$mi.x, d$mi.x.x, method = "spearman")
+  t_sm <- cor(d$mi.x, d$mi.y.y, method = "spearman")
+  return(c(t_s, t_sw, t_sm))
+}
+```
+
+### Step 2: Run sims
+
+ - Uncomment code to run
+
+```{r}
+rbd_df <- as.data.frame(rbd_mat) %>%
+  rownames_to_column()
+
+sims = 1:100
+# sim_results_rbd <- lapply(sims, function(x) {run_sim(x, trueMI = rbdMI,
+#                                                  mat = rbd_mat, df = rbd_df,
+#                                                  sampling_freqs, rbd_weights)})
+# 
+# saveRDS(sim_results_rbd, "../data/rbd_sim_results_20221118.rds")
+
+```
+
+## Plot sim results
+
+```{r}
+sim_results_rbd <- readRDS("../data/rbd_sim_results_20221118.rds")
+
+mi_s <- c()
+mi_sw <- c()
+mi_sm <- c()
+
+for (i in 1:100){
+  mi_s[i] = sim_results_rbd[[i]][1]
+  mi_sw[i] = sim_results_rbd[[i]][2]
+  mi_sm[i] = sim_results_rbd[[i]][3]
+}
+
+sim_df <- tibble(
+  simID = rep(1:100, 3),
+  `Correlation of original MI with:` = c(rep("Sampled MI", 100),
+                 rep("Incidence-weighted MI", 100),
+                 rep("Equal-weighted MI", 100)),
+  `Spearman Correlation` = c(mi_s, mi_sw, mi_sm)
+)
+
+ggplot(sim_df, aes(x = `Spearman Correlation`,
+                   group = `Correlation of original MI with:`,
+                   color = `Correlation of original MI with:`,
+                   fill = `Correlation of original MI with:`)) +
+  geom_density(alpha = 0.3) +
+  scale_fill_manual(values = c("#F3766E", "#7094CD", "#939598")) +
+  scale_color_manual(values = c("#F3766E", "#7094CD", "#939598")) +
+  theme_classic() +
+  theme(text = element_text(size = 12)) +
+  labs(title = "Correlations from 100 sampled Spike-RBD alignments")
+
+ggsave("../Figures/sim_comparisons.pdf",
+       width = 5, height = 3)
+```

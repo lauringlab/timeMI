@@ -41,3 +41,7 @@ vignettes/*.pdf
 # Mac stuff
 .DS_Store
 
+# Sarah stuff
+/Old
+/data
+

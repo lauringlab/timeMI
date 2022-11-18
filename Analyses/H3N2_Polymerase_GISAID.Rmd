@@ -1,0 +1,32 @@
+---
+title: "H3N2_Polymerase_GISAID"
+author: "Sarah Arcos"
+date: "2022-11-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Characteristics of H3N2 polymerase GISAID entries
+
+```{r}
+seq_times <- seq_times <- readRDS("../data/seq_times_091122.rda")
+
+
+p <- ggplot(seq_times, aes(x = date)) +
+  geom_bar(fill = "#939598", alpha = 0.5) +
+  xlab("Year") +
+  ylab("Number of sequences") +
+  labs(subtitle = "Distribution of complete H3N2 polymerase sequences in GISAID") +
+  theme_classic() +
+  theme(text = element_text(size = 12))
+
+p
+
+ggsave("../Figures/pol_distribution.pdf", p, device = "pdf",
+       height = 3, width = 6)
+
+```
