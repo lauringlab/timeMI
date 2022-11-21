@@ -11,6 +11,7 @@ library(tidyverse)
 library(Biostrings)
 library(weightedMI)
 library(data.table)
+source("../Plot_Frequencies.R")
 ```
 
 # Calculate MI for H3N2 polymerase using 5-year sligind windows
@@ -37,6 +38,7 @@ get_window <- function(df, mat, start_year){
     filter(date >= start_year & date < start_year+5)
   return(mat[window_df$rowname,])
 }
+
 ```
 
 ## Calculate MI for each window
@@ -57,16 +59,9 @@ get_window <- function(df, mat, start_year){
 
 ## Plot MI of example residue pairs
 
-```{r}
+```{r fig.width= 4}
 window_results <- readRDS("../data/slidingWindows.rds")
 windows <- rbindlist(window_results, idcol = TRUE)
-
-mi_iav_info <- readRDS("../data/mi_network_info.rds")
-get_index <- function(pos){
-  return(mi_iav_info[mi_iav_info$index == pos,]$id %>%
-           str_replace("_", " "))
-}
-get_index_v <- Vectorize(get_index)
 
 plot_example_mi <- function(v1, v2){
   
@@ -75,9 +70,10 @@ plot_example_mi <- function(v1, v2){
     select(.id, Group, mi, mip, v1_entropy, v2_entropy) %>%
     full_join(tibble(.id = start_years), by = ".id") %>%
     complete(.id, Group, fill = list(mi = 0, mip = -Inf, v1_entropy = 0, v2_entropy = 0)) %>%
-    filter(!is.na(Group))
+    filter(!is.na(Group)) %>%
+    mutate(window_midpoint = .id + 2.5)
   
-  ggplot(window_example, aes(x = .id, y = mi)) +
+  ggplot(window_example, aes(x = window_midpoint, y = mi)) +
     geom_line() +
     scale_y_continuous(breaks = c(0, 0.3, 0.6)) +
     theme_minimal() +
@@ -87,10 +83,20 @@ plot_example_mi <- function(v1, v2){
     theme(text = element_text(size = 12))
 }
 
-plot_example_mi(1228, 1848)
-plot_example_mi(938, 1346)
-plot_example_mi(522, 1846)
-plot_example_mi(227, 938)
+plot_example_freqs(590, 1468)
+# ggsave("../Figures/mi_590_1468.pdf",
+#        width = 4, height = 4)
+plot_example_mi(590, 1468)
+# ggsave("../Figures/freq_590_1468.pdf",
+#        width = 4, height = 2)
+
+plot_example_freqs(1228, 1866)
+# ggsave("../Figures/mi_1228_1866.pdf",
+#        width = 4, height = 4)
+plot_example_mi(1228, 1866)
+# ggsave("../Figures/freq_1228_1866.pdf",
+#        width = 4, height = 2)
+
 
 ```
 
