@@ -357,13 +357,12 @@ display: none;
 </div>
 
 
-<div id="calculate-mi-for-h3n2-polymerase-using-5-year-sligind-windows" class="section level1">
-<h1>Calculate MI for H3N2 polymerase using 5-year sligind windows</h1>
+<div id="calculate-mi-for-h3n2-polymerase-using-5-year-sliding-windows" class="section level1">
+<h1>Calculate MI for H3N2 polymerase using 5-year sliding windows</h1>
 <div id="read-in-data" class="section level2">
 <h2>Read in data</h2>
 <pre class="r"><code>seq_times &lt;- readRDS(&quot;../data/seq_times_091122.rda&quot;)
-pol &lt;- readAAStringSet(&quot;../../H3N2_Processing/pol_aa.fasta&quot;) %&gt;%
-  as.matrix</code></pre>
+pol &lt;- readMSA(&quot;../../H3N2_Processing/pol_aa.fasta&quot;)</code></pre>
 </div>
 <div id="get-start-of-each-window" class="section level2">
 <h2>Get start of each window</h2>
@@ -394,8 +393,12 @@ pol &lt;- readAAStringSet(&quot;../../H3N2_Processing/pol_aa.fasta&quot;) %&gt;%
 </div>
 <div id="plot-mi-of-example-residue-pairs" class="section level2">
 <h2>Plot MI of example residue pairs</h2>
+<ul>
+<li>For amino acid frequencies, use functions from
+Plot_Frequencies.R</li>
+</ul>
 <pre class="r"><code>window_results &lt;- readRDS(&quot;../data/slidingWindows.rds&quot;)
-windows &lt;- rbindlist(window_results, idcol = TRUE)
+windows &lt;- data.table::rbindlist(window_results, idcol = TRUE)
 
 plot_example_mi &lt;- function(v1, v2){
   

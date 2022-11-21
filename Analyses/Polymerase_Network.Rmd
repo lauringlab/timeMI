@@ -1,0 +1,89 @@
+---
+title: "Polymerase_Network"
+author: "Sarah Arcos"
+date: "2022-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(weightedMI)
+library(associationsubgraphs)
+```
+
+# Calculate the equal-weighted MI for the H3N2 polymerase
+
+## Read in data
+
+```{r}
+seq_times <- readRDS("../data/seq_times_091122.rda") %>%
+  select(ID = rowname, group = date)
+pol <- readMSA("../../H3N2_Processing/pol_aa.fasta")
+```
+
+## Calculate MI
+
+ - Uncomment code to actually run
+ - **Warning**: for H3N2 pol, takes ~45 min to 1 hour with ncores = 6
+
+```{r}
+# polMI <- calculateMI(pol, weighted = TRUE, groups = seq_times,
+#                      weights = "equal", ncores = 6)
+# 
+# saveRDS(polMI, "../data/h3n2pol_equalMI.rds")
+```
+
+
+## Generate Network Viz
+
+ - Use associationsubgraphs package
+ - Set default step to "min_max_rule"
+ - Use mi_network_info to get readable index names
+
+```{r}
+polMI <- readRDS("../data/h3n2pol_equalMI.rds")
+mi_network_info <- readRDS("../data/mi_network_info.rds")
+
+polMI_IDs <- polMI %>%
+  left_join(mi_network_info, by = c("V1" = "index")) %>%
+  left_join(mi_network_info, by = c("V2" = "index")) %>%
+  filter(z_score > 4) %>%
+  select(a = "id.x", b = "id.y", strength = mip)
+
+visualize_subgraph_structure(
+  association_pairs = polMI_IDs,
+  node_info = mi_network_info %>% select(-index),
+  trim_subgraph_results = FALSE,
+  default_step = "min_max_rule"
+)
+
+```
+
+
+
+## Tally high-scoring MIp among polymerase subunits
+
+ - "High-scoring" means z-score > 4
+
+```{r}
+polMI_tallys <- polMI_IDs  %>%
+  mutate(grouping = paste(a,b, sep = ", ")) %>%
+  mutate(grouping = str_remove_all(grouping, pattern = "_[0-9]*")) %>%
+  count(grouping) %>%
+  arrange(n) %>% 
+  mutate(grouping = factor(grouping, levels = unique(grouping)))
+
+ggplot(polMI_tallys, aes(x = grouping, y = n)) +
+  geom_col(alpha = 0.7, fill = "grey") +
+  theme_classic() +
+  labs(title = "wMI pairs within and between polymerase proteins",
+       x = "Group", y = "Count") +
+  theme(text = element_text(size = 12),
+        legend.position = "none")
+
+# ggsave("../Figures/mip_pairs.pdf",
+#        width = 5, height = 3)
+```
+
+

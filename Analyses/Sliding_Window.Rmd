@@ -8,20 +8,18 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(Biostrings)
 library(weightedMI)
-library(data.table)
+
 source("../Plot_Frequencies.R")
 ```
 
-# Calculate MI for H3N2 polymerase using 5-year sligind windows
+# Calculate MI for H3N2 polymerase using 5-year sliding windows
 
 ## Read in data
 
 ```{r}
 seq_times <- readRDS("../data/seq_times_091122.rda")
-pol <- readAAStringSet("../../H3N2_Processing/pol_aa.fasta") %>%
-  as.matrix
+pol <- readMSA("../../H3N2_Processing/pol_aa.fasta")
 ```
 
 ## Get start of each window
@@ -38,7 +36,6 @@ get_window <- function(df, mat, start_year){
     filter(date >= start_year & date < start_year+5)
   return(mat[window_df$rowname,])
 }
-
 ```
 
 ## Calculate MI for each window
@@ -59,9 +56,11 @@ get_window <- function(df, mat, start_year){
 
 ## Plot MI of example residue pairs
 
+ - For amino acid frequencies, use functions from Plot_Frequencies.R
+
 ```{r fig.width= 4}
 window_results <- readRDS("../data/slidingWindows.rds")
-windows <- rbindlist(window_results, idcol = TRUE)
+windows <- data.table::rbindlist(window_results, idcol = TRUE)
 
 plot_example_mi <- function(v1, v2){
   

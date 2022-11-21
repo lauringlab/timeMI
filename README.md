@@ -1,2 +1,2 @@
 # timeMI
-This is a package to calculate inverse weighted entropy and MI values for an MSA to account for uneven time sampling
+This repository contains the code and analyses for the maunscript "Mutual information networks reveal evolutionary relationships within the Influenza A polymerase" by Arcos et al.
