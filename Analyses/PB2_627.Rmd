@@ -1,0 +1,63 @@
+---
+title: "PB2_627"
+author: "Sarah Arcos"
+date: "2022-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(weightedMI)
+library(associationsubgraphs)
+
+source("../Plot_Frequencies.R")
+```
+
+# Find coevolving residues with PB2 627
+
+## Read in data
+
+```{r}
+seq_times <- readRDS("../data/seq_times_091122.rda")
+mi_network_info <- readRDS("../data/mi_network_info.rds")
+polMI <- readRDS("../data/h3n2pol_equalMI.rds")
+```
+
+## Find coevolving residues
+
+```{r}
+coevolving <- polMI %>%
+  filter(z_score > 4) %>%
+  filter(V1 == 627 | V2 == 627)
+
+coevolving_top5 <- coevolving %>%
+  slice_max(order_by = mip, n = 5) %>%
+  left_join(mi_network_info, by = c("V1" = "index")) %>%
+  left_join(mi_network_info, by = c("V2" = "index")) %>%
+  select("a" = id.x, "b" = id.y, mi, apc, mip, z_score)
+
+knitr::kable(coevolving_top5)
+```
+
+## Plot amino acid frequencies
+
+```{r}
+plot_example_freqs(c(44, 199, 591, 627, 645, 1784))
+```
+
+## Look at sequence metadata for mutations near 2012
+
+### Observation 1: Most sequences are noted as containing "M" gene from H1N1pdm09
+### Observation 2: Most sequences are from the Midwest
+
+```{r}
+e <- seq_times %>%
+  mutate(`Amino Acid` = str_sub(x, start = 627, end = 627)) %>%
+  filter(`Amino Acid` == "E") %>%
+  select(`Isolate_ID` = rowname, Passage_History, `Location`,
+         Originating_Lab, Collection_Date, Note, `Amino Acid`)
+
+knitr::kable(e, caption = "Sequence Metadata for osolates containing PB2 K627E mutation")
+```
+
