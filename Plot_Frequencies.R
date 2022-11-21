@@ -1,14 +1,7 @@
 #Plotting functions for amino acid frequencies
 
-library(tidyverse)
-
-#Read in metadata
-seq_times <- readRDS("../data/seq_times_091122.rda")
-mi_iav_info <- readRDS("../data/mi_network_info.rds")
-
-
 get_index <- function(pos){
-  return(mi_iav_info[mi_iav_info$index == pos,]$id %>%
+  return(mi_network_info[mi_network_info$index == pos,]$id %>%
            str_replace("_", " "))
 }
 get_index_v <- Vectorize(get_index)
@@ -39,9 +32,9 @@ pal2 <- c("A" = "#8CFF8C", "G" = "#FFFFFF", "L" = "#455E45", "S" = "#FF7042",
           "H" = "#7070FF", "C" = "#FFFF70", "M" = "#B8A042", "W" = "#4F4600",
           "X" = "#B8B8B8")
 
-plot_example_freqs <- function(v1, v2){
-  ggplot(get_subgraph_freqs(c(v1, v2)), aes(x = date, y = freq, fill = `Amino Acid`,
-                                            color = `Amino Acid`, group = `Amino Acid`)) +
+plot_example_freqs <- function(nodes){
+  ggplot(get_subgraph_freqs(nodes), aes(x = date, y = freq, fill = `Amino Acid`,
+                                        color = `Amino Acid`, group = `Amino Acid`)) +
     geom_area(alpha = 0.4) +
     facet_wrap(~position, ncol = 1) +
     scale_fill_manual(values = pal2) +
@@ -49,10 +42,6 @@ plot_example_freqs <- function(v1, v2){
     scale_y_continuous(breaks = c(0, 0.5, 1.0)) +
     theme_minimal() +
     labs(title = "Amino Acid Frequencies",
-         subtitle = paste(get_index(v1), "and", get_index(v2)),
          x = "Date", y = "Frequency") +
-    theme(text = element_text(size = 12),
-          legend.position="bottom")
+    theme(text = element_text(size = 12))
 }
-
-

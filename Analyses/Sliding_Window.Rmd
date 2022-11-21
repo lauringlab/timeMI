@@ -82,14 +82,14 @@ plot_example_mi <- function(v1, v2){
     theme(text = element_text(size = 12))
 }
 
-plot_example_freqs(590, 1468)
+plot_example_freqs(c(590, 1468))
 # ggsave("../Figures/mi_590_1468.pdf",
 #        width = 4, height = 4)
 plot_example_mi(590, 1468)
 # ggsave("../Figures/freq_590_1468.pdf",
 #        width = 4, height = 2)
 
-plot_example_freqs(1228, 1866)
+plot_example_freqs(c(1228, 1866))
 # ggsave("../Figures/mi_1228_1866.pdf",
 #        width = 4, height = 4)
 plot_example_mi(1228, 1866)

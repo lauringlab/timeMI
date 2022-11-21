@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(weightedMI)
 library(associationsubgraphs)
+
+source("../Plot_Frequencies.R")
 ```
 
 # Calculate the equal-weighted MI for the H3N2 polymerase
@@ -17,19 +19,22 @@ library(associationsubgraphs)
 ## Read in data
 
 ```{r}
-seq_times <- readRDS("../data/seq_times_091122.rda") %>%
+seq_times <- readRDS("../data/seq_times_091122.rda")
+
+polHA_groups <- seq_times %>%
   select(ID = rowname, group = date)
-pol <- readMSA("../../H3N2_Processing/polha_aa.fasta")
+
+polHA <- readMSA("../../H3N2_Processing/polha_aa.fasta")
 ```
 
 ## Calculate MI
 
  - Uncomment code to actually run
- - **Warning**: for H3N2 pol, takes ~45 min to 1 hour with ncores = 6
+ - **Warning**: for H3N2 pol-HA, takes ~1 hour with ncores = 7
 
 ```{r}
-# polHA_MI <- calculateMI(pol, weighted = TRUE, groups = seq_times,
-#                      weights = "equal", ncores = 6)
+# polHA_MI <- calculateMI(polHA, weighted = TRUE, groups = polHA_groups,
+#                      weights = "equal", ncores = 7)
 # 
 # saveRDS(polHA_MI, "../data/h3n2polHA_equalMI.rds")
 ```
@@ -116,4 +121,36 @@ ggplot(polHA_MI_tallys_summary, aes(x = grouping, y = n)) +
 #        width = 5, height = 3)
 ```
 
+## Plot amino acid frequencies for top subgraphs with HA
+
+```{r}
+#Subgraph 5
+plot_example_freqs(c(194, 338, 569, 2243))
+# ggsave("../Figures/freqHA_subgraph5.pdf",
+#        width = 4, height = 3)
+
+#Subgraph 9
+plot_example_freqs(c(697, 1828, 1859, 2089, 2305))
+# ggsave("../Figures/freqHA_subgraph9.pdf",
+#        width = 4, height = 3.5)
+```
+
+## Plot amino acid frequencies for top subgraphs without HA
+
+```{r}
+#Subgraph 4
+plot_example_freqs(c(1378,1468))
+# ggsave("../Figures/freqHA_subgraph4.pdf",
+#        width = 4, height = 2)
+
+#Subgraph 8
+plot_example_freqs(c(811, 1335))
+# ggsave("../Figures/freqHA_subgraph8.pdf",
+#        width = 4, height = 2)
+
+#Subgraph 10
+plot_example_freqs(c(107, 1228, 1866))
+# ggsave("../Figures/freqHA_subgraph10.pdf",
+#        width = 4, height = 2.5)
+```
 

@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(weightedMI)
 library(associationsubgraphs)
+
+source("../Plot_Frequencies.R")
 ```
 
 # Calculate the equal-weighted MI for the H3N2 polymerase
@@ -17,8 +19,11 @@ library(associationsubgraphs)
 ## Read in data
 
 ```{r}
-seq_times <- readRDS("../data/seq_times_091122.rda") %>%
+seq_times <- readRDS("../data/seq_times_091122.rda")
+
+pol_groups <- seq_times %>%
   select(ID = rowname, group = date)
+
 pol <- readMSA("../../H3N2_Processing/pol_aa.fasta")
 ```
 
@@ -28,7 +33,7 @@ pol <- readMSA("../../H3N2_Processing/pol_aa.fasta")
  - **Warning**: for H3N2 pol, takes ~45 min to 1 hour with ncores = 6
 
 ```{r}
-# polMI <- calculateMI(pol, weighted = TRUE, groups = seq_times,
+# polMI <- calculateMI(pol, weighted = TRUE, groups = pol_groups,
 #                      weights = "equal", ncores = 6)
 # 
 # saveRDS(polMI, "../data/h3n2pol_equalMI.rds")
@@ -85,5 +90,23 @@ ggplot(polMI_tallys, aes(x = grouping, y = n)) +
 # ggsave("../Figures/mip_pairs.pdf",
 #        width = 5, height = 3)
 ```
+
+## Plot amino acid frequencies for top subgraphs
+
+```{r}
+#Subgraph 1
+plot_example_freqs(c(194, 227, 338, 569))
+# ggsave("../Figures/freq_subgraph1.pdf",
+#        width = 4, height = 3)
+
+#Subgraph 2
+plot_example_freqs(c(559, 697, 1828, 1859, 2073, 2089))
+# ggsave("../Figures/freq_subgraph2.pdf",
+#        width = 4, height = 4)
+```
+
+
+
+
 
 
