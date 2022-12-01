@@ -21,7 +21,7 @@ get_subgraph_freqs <- function(elements){
   names(elements) <- elements
   m <- lapply(elements, get_position_freq, seq_times) %>%
     bind_rows(.id = "position") %>%
-    mutate(position = get_index_v(position))
+    mutate(position = paste (get_index_v(position), "Amino Acid Frequency", sep = " "))
   return(m)
 }
 
@@ -41,7 +41,6 @@ plot_example_freqs <- function(nodes){
     scale_color_manual(values = pal2) +
     scale_y_continuous(breaks = c(0, 0.5, 1.0)) +
     theme_minimal() +
-    labs(title = "Amino Acid Frequencies",
-         x = "Date", y = "Frequency") +
+    labs(x = "Date", y = "Frequency") +
     theme(text = element_text(size = 12))
 }

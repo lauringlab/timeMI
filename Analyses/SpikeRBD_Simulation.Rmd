@@ -107,7 +107,7 @@ ggplot(wash_cases_isolates, aes(x = group, y = n))+
   theme(text = element_text(size = 12), axis.text.x = element_text(angle = 90))
 
 # ggsave("../Figures/spikeRBD_incidence.pdf",
-#        width = 5, height = 3)
+#        width = 3, height = 2.5)
 ```
 
 ## Calculate raw MI for Spike RBD
@@ -148,9 +148,9 @@ ggplot(sample_ex, aes(x = group, y = n)) +
   labs(subtitle = "Distribution of Spike RBD Sequences after sampling (with replacement)") +
   theme_classic() +
   theme(text = element_text(size = 12), axis.text.x = element_text(angle = 90))
-# 
+
 # ggsave("../Figures/sim_sampled.pdf",
-#        width = 5, height = 3)
+#        width = 3, height = 2.5)
 ```
 
 ## Calculate MI for 100 samples
@@ -251,6 +251,6 @@ ggplot(sim_df, aes(x = `Spearman Correlation`,
   theme(text = element_text(size = 12)) +
   labs(title = "Correlations from 100 sampled Spike-RBD alignments")
 
-ggsave("../Figures/sim_comparisons.pdf",
-       width = 5, height = 3)
+# ggsave("../Figures/sim_comparisons.pdf",
+#        width = 6, height = 3)
 ```

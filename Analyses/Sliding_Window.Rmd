@@ -61,6 +61,7 @@ get_window <- function(df, mat, start_year){
 ```{r fig.width= 4}
 window_results <- readRDS("../data/slidingWindows.rds")
 windows <- data.table::rbindlist(window_results, idcol = TRUE)
+mi_network_info <- readRDS("../data/mi_network_info.rds")
 
 plot_example_mi <- function(v1, v2){
   
@@ -76,25 +77,25 @@ plot_example_mi <- function(v1, v2){
     geom_line() +
     scale_y_continuous(breaks = c(0, 0.3, 0.6)) +
     theme_minimal() +
-    labs(title = "Mutual Information (5-year sliding window)",
-         subtitle = paste(get_index(v1), "and", get_index(v2)),
-         x = "Date", y = "Mutual Information") +
+    labs(subtitle = "Mutual Information (5-year sliding window)",
+         title = paste(get_index(v1), "and", get_index(v2)),
+         x = "Date", y = "MI") +
     theme(text = element_text(size = 12))
 }
 
 plot_example_freqs(c(590, 1468))
-# ggsave("../Figures/mi_590_1468.pdf",
-#        width = 4, height = 4)
+# ggsave("../Figures/freqs_590_1468.pdf",
+#        width = 3.8, height = 3)
 plot_example_mi(590, 1468)
-# ggsave("../Figures/freq_590_1468.pdf",
-#        width = 4, height = 2)
+# ggsave("../Figures/mi_590_1468.pdf",
+#        width = 2.5, height = 2)
 
 plot_example_freqs(c(1228, 1866))
-# ggsave("../Figures/mi_1228_1866.pdf",
-#        width = 4, height = 4)
+# ggsave("../Figures/freqs_1228_1866.pdf",
+#        width = 3.8, height = 3)
 plot_example_mi(1228, 1866)
-# ggsave("../Figures/freq_1228_1866.pdf",
-#        width = 4, height = 2)
+# ggsave("../Figures/mi_1228_1866.pdf",
+#        width = 2.5, height = 2)
 
 
 ```

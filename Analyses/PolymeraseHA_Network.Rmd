@@ -50,14 +50,7 @@ polHA <- readMSA("../../H3N2_Processing/polha_aa.fasta")
 polHA_MI <- readRDS("../data/h3n2polHA_equalMI.rds")
 mi_network_info <- readRDS("../data/mi_network_info.rds")
 
-mi_mean <- mean(polHA_MI$mip)
-mi_sd <- sd(polHA_MI$mip)
-
-polHA_MI_z <- polHA_MI %>%
-  mutate(z_score = (mip- mi_mean)/mi_sd) %>%
-  filter(z_score > 4)
-
-polHA_MI_IDs <- polHA_MI_z %>%
+polHA_MI_IDs <- polHA_MI %>%
   left_join(mi_network_info, by = c("V1" = "index")) %>%
   left_join(mi_network_info, by = c("V2" = "index")) %>%
   filter(z_score > 4) %>%
@@ -94,8 +87,8 @@ ggplot(polHA_MI_tallys, aes(x = grouping, y = n)) +
   theme(text = element_text(size = 12),
         legend.position = "none")
 
-# ggsave("../Figures/mipHA_pairs_all.pdf",
-#        width = 5, height = 3)
+ggsave("../Figures/mipHA_pairs_all.pdf",
+       width = 6.8, height = 3)
 
 polHA_MI_tallys_summary <- polHA_MI_IDs  %>%
   mutate(group1 = paste(a,b, sep = ", ")) %>%
