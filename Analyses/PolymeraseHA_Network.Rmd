@@ -147,3 +147,38 @@ plot_example_freqs(c(107, 1228, 1866))
 #        width = 4, height = 2.5)
 ```
 
+## Plot distribution of top MIp among groups
+
+```{r}
+polHA_MI_groups <- polHA_MI_IDs  %>%
+  mutate(grouping = paste(a,b, sep = ", ")) %>%
+  mutate(grouping = str_remove_all(grouping, pattern = "_[0-9]*"))
+
+ggplot(polHA_MI_groups, aes(x = factor(grouping, levels = polHA_MI_tallys$grouping), y = log10(strength))) +
+  geom_violin() +
+  stat_summary(fun.data = "mean_cl_boot", geom = "pointrange",
+               colour = "red") +
+  theme_classic() +
+  theme(text = element_text(size = 12),
+        legend.position = "none")
+
+
+polHA_MI_summarygroups <- polHA_MI_IDs  %>%
+  mutate(group1 = paste(a,b, sep = ", ")) %>%
+  mutate(group1 = str_remove_all(group1, pattern = "_[0-9]*")) %>%
+    mutate(grouping = case_when(
+    group1 %in% c("PB1, HA", "PB2, HA", "PA, HA") ~ "Pol-HA",
+    group1 == "HA, HA" ~ "HA-HA",
+    TRUE ~ "Pol-Pol"
+  ))
+
+ggplot(polHA_MI_summarygroups, aes(x = factor(grouping, levels = polHA_MI_tallys_summary$grouping), y = log10(strength))) +
+  geom_violin() +
+  stat_summary(fun.data = "mean_cl_boot", geom = "pointrange",
+               colour = "red") +
+  theme_classic() +
+  theme(text = element_text(size = 12),
+        legend.position = "none")
+```
+
+

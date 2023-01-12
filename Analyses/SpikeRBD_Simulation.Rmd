@@ -254,3 +254,22 @@ ggplot(sim_df, aes(x = `Spearman Correlation`,
 # ggsave("../Figures/sim_comparisons.pdf",
 #        width = 6, height = 3)
 ```
+
+
+## Mean correlations and confidence intervals
+
+```{r}
+#sampled
+mean(mi_s)
+quantile(mi_s, probs = c(0.025, 0.975))
+
+#Equal weighted
+mean(mi_sm)
+quantile(mi_sm, probs = c(0.025, 0.975))
+
+#Incidence weighted
+mean(mi_sw)
+quantile(mi_sw, probs = c(0.025, 0.975))
+
+
+```

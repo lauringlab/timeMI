@@ -1,0 +1,150 @@
+---
+title: "Polymerase_Circos"
+author: "Sarah Arcos"
+date: "2022-12-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(circlize)
+library(viridis)
+```
+
+
+## Read in data
+
+```{r}
+polMI <- readRDS("../data/h3n2pol_equalMI.rds") %>%
+  filter(z_score > 4)
+mi_network_info <- readRDS("../data/mi_network_info.rds")
+
+```
+
+
+## Generate dataframes for circos plotting
+
+```{r}
+mi_network_info_sectors <- mi_network_info %>%
+  mutate(sector = str_remove(id, pattern = "_[0-9]*"),
+         sector_index = as.numeric(str_remove(id, pattern = "[A-Z]*[0-9]*_")))
+
+pol_circos <- polMI %>%
+  left_join(mi_network_info_sectors, by = c("V1" = "index")) %>%
+  left_join(mi_network_info_sectors, by = c("V2" = "index")) %>%
+  select(x = sector_index.x, xend = sector_index.y, sectorx = sector.x, sectorxend = sector.y, mip, z_score) %>%
+  arrange(mip)
+
+sector_colors <- tibble(
+  sector_id = c("PB1", "PB2", "PA"),
+  sector_color = c("#d1e5f0", "#fddbc7", "#f2f2f2")
+)
+
+polymerase_sectors = data.frame(sectors = c(rep("PB2", 759),
+                                       rep("PB1", 757),
+                                       rep("PA", 716)),
+                           x = c(1:759, 1:757, 1:716),
+                           y = runif(759+757+716))
+
+domains <- data.frame(
+  domain_name = c("N", "Fingers", "Palm", "Palm", "Thumb", "Priming loop", "C",
+                  "N", "Lid", "Cap-binding", "Cap-627 linker", "627", "NLS",
+                  "Endo", "Linker", "C"),
+  sector = c(rep("PB1", 7), rep("PB2", 6), rep("PA", 3)),
+  start = c(1, 35, 265, 412, 498, 640, 669,
+            1, 153, 319, 481, 538, 680,
+            1, 195, 256),
+  end = c(35, 177, 314, 498, 640, 657, 756,
+          54, 212, 481, 538, 680, 760,
+          195, 256, 713))
+
+
+
+```
+
+## Create functions for plotting links (MI) and protein domains
+
+```{r}
+
+draw_link <- function(link_start, link_end, strength, sector_start, sector_end){
+  circos.link(sector_start, link_start,
+              sector_end, link_end,
+              col = colors(strength),
+              lwd = 1.5)
+}
+
+draw_sector <- function(sector_id, sector_color){
+  draw.sector(get.cell.meta.data("cell.start.degree", sector.index = sector_id),
+              get.cell.meta.data("cell.end.degree", sector.index = sector_id),
+              rou1 = get.cell.meta.data("cell.top.radius", track.index = 1),
+              rou2 = get.cell.meta.data("cell.bottom.radius", track.index = 1),
+              col = sector_color)
+}
+
+draw_domain<- function(domain_name, sector, start, end){
+  circos.rect(start, 0, end, 1, sector, 1)
+  x = end - round((end-start)/2)
+  if((end-start)/nchar(domain_name) < 15){
+    y = 3.3
+    circos.segments(x, 0.5, x, 1.9, sector,
+                    lwd = 0.6,
+                    lty = 2)}
+  else{
+    y = 0.5}
+  if(domain_name == "Cap-627 linker"){
+    y = 3.8
+    circos.segments(x, 0.5, x, 2.7, sector,
+                    lwd = 0.6,
+                    lty = 2)
+    x = x+30}
+  circos.text(x, y, domain_name, sector, 1,
+              niceFacing = TRUE, cex = 1,
+              facing = "bending",
+              family = "sans")
+}
+
+```
+
+
+## Draw circos 
+
+```{r}
+#colors <- viridis(63, alpha = 0.1)
+
+colors = colorRamp2(range(polMI$z_score), c("#fcfbfd", "#3f007d"), transparency = 0)
+
+#Plot circos
+circos.clear()
+circos.par("track.height" = 0.1, "canvas.xlim" = c(-1.08,1.08),
+           "canvas.ylim" = c(-1.08,1.08))
+circos.initialize(polymerase_sectors$sectors, x = polymerase_sectors$x)
+circos.track(polymerase_sectors$sectors, ylim = c(0,1),
+             panel.fun = function(x, y) {
+               circos.text(CELL_META$xcenter,
+                           CELL_META$cell.ylim[2] + mm_y(18),
+                           CELL_META$sector.index,
+                           cex = 2.2)
+               circos.axis(labels.cex = 0.5)
+             })
+
+mapply(draw_sector, sector_colors$sector_id, sector_colors$sector_color)
+mapply(draw_link, pol_circos$x,
+       pol_circos$xend,
+       pol_circos$z_score,
+       pol_circos$sectorx,
+       pol_circos$sectorxend)
+mapply(draw_domain, domains$domain_name,
+       domains$sector, domains$start, domains$end)
+
+```
+
+
+
+
+
+
+
+
+
+

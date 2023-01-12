@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(weightedMI)
 library(associationsubgraphs)
+library(viridis)
 
 source("../Plot_Frequencies.R")
 ```
@@ -106,6 +107,40 @@ plot_example_freqs(c(559, 697, 1828, 1859, 2073, 2089))
 ```
 
 
+## Plot distribution of top MIp among groups
+
+```{r}
+polMI_groups <- polMI_IDs  %>%
+  mutate(grouping = paste(a,b, sep = ", ")) %>%
+  mutate(grouping = str_remove_all(grouping, pattern = "_[0-9]*"))
+
+ggplot(polMI_groups, aes(x = factor(grouping, levels = polMI_tallys$grouping), y = log10(strength))) +
+  geom_violin() +
+  stat_summary(fun.data = "mean_cl_boot", geom = "pointrange",
+               colour = "red") +
+  theme_classic() +
+  theme(text = element_text(size = 12),
+        legend.position = "none")
+```
+
+## Percent of top wMI pairs between capB and endo domains of PB2
+
+```{r}
+polMI_endocap <- polMI %>%
+  left_join(mi_network_info, by = c("V1" = "index")) %>%
+  left_join(mi_network_info, by = c("V2" = "index")) %>%
+  filter(z_score > 4) %>%
+  filter((V1 >= 318 & V1 < 480) |
+           (V2 >= 318 & V2 < 480) |
+           (V1 >= (759+757) & V1 < (759+757+195)) |
+           (V2 >= (759+757) & V2 < (759+757+195)))
+
+nrow(polMI_endocap) / nrow(polMI_IDs)
+
+#Percent of protein length that is endo or capB
+((480 - 318) + 195) / (759+757+716)
+
+```
 
 
 
