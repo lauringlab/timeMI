@@ -75,7 +75,8 @@ plot_example_mi <- function(v1, v2){
   
   ggplot(window_example, aes(x = window_midpoint, y = mi)) +
     geom_line() +
-    scale_y_continuous(breaks = c(0, 0.3, 0.6)) +
+    scale_y_continuous(limits = c(0, 1),
+                       breaks = c(0, 0.5, 1)) +
     theme_minimal() +
     labs(subtitle = "Mutual Information (5-year sliding window)",
          title = paste(get_index(v1), "and", get_index(v2)),
