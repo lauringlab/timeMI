@@ -57,6 +57,8 @@ polMI_IDs <- polMI %>%
   filter(z_score > 4) %>%
   select(a = "id.x", b = "id.y", strength = mip)
 
+# saveRDS(polMI_IDs,"/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/polMI.rds")
+
 visualize_subgraph_structure(
   association_pairs = polMI_IDs,
   node_info = mi_network_info %>% select(-index),

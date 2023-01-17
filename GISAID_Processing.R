@@ -96,6 +96,7 @@ seq_times <- as.data.frame(polha_aa) %>%
   filter(!is.na(date))
 
 saveRDS(seq_times, "data/seq_times_091122.rda")
+saveRDS(seq_times, "/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/seq_times_091122.rda")
 
 seq_times_noHA <- as.data.frame(pol_aa) %>%
   rownames_to_column() %>%
@@ -104,5 +105,23 @@ seq_times_noHA <- as.data.frame(pol_aa) %>%
   filter(!is.na(date))
 
 saveRDS(seq_times_noHA, "data/seq_times_noHA_091122.rda")
+
+
+######################## Make mi_network_info #################################
+mi_network_info <- tibble(
+  index = 1:2798,
+  gene = c(rep("PB2", 759), rep("PB1", 757), rep("PA", 716), rep("HA", 566)),
+  id = c(1:759, 1:757, 1:716, 1:566)) %>%
+  mutate(id = paste(gene, id, sep = "_"),
+         color = case_when(
+           str_detect(id, "PA") ~ "darkgrey",
+           str_detect(id, "PB1") ~ "#08519c",
+           str_detect(id, "PB2") ~ "#e41a1c",
+           TRUE ~ "#fd8d3c"
+         )) %>%
+  select(-gene)
+
+saveRDS(mi_network_info, "data/mi_network_info.rds")
+saveRDS(mi_network_info, "/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/mi_network_info.rds")
 
 
