@@ -54,7 +54,7 @@ polHA_MI_IDs <- polHA_MI %>%
   left_join(mi_network_info, by = c("V1" = "index")) %>%
   left_join(mi_network_info, by = c("V2" = "index")) %>%
   filter(z_score > 4) %>%
-  select(a = "id.x", b = "id.y", strength = mip)
+  select(a = "id.x", b = "id.y", strength = z_score)
 
 # saveRDS(polHA_MI_IDs,"/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/polHA_MI.rds")
 

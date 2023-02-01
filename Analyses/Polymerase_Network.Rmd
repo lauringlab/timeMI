@@ -55,7 +55,7 @@ polMI_IDs <- polMI %>%
   left_join(mi_network_info, by = c("V1" = "index")) %>%
   left_join(mi_network_info, by = c("V2" = "index")) %>%
   filter(z_score > 4) %>%
-  select(a = "id.x", b = "id.y", strength = mip)
+  select(a = "id.x", b = "id.y", strength = z_score)
 
 # saveRDS(polMI_IDs,"/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/polMI.rds")
 
