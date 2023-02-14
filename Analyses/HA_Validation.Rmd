@@ -1,0 +1,108 @@
+---
+title: "HA_Validation"
+author: "Sarah Arcos"
+date: "2023-02-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(weightedMI)
+library(associationsubgraphs)
+
+source("../Plot_Frequencies.R")
+```
+
+# Find coevolving residues with PB2 627
+
+## Read in data
+
+```{r}
+seq_times <- readRDS("../data/seq_times_091122.rda")
+mi_network_info_ha <- readRDS("../data/mi_network_info_ha.rds")
+polHA_MI <- readRDS("../data/h3n2polHA_equalMI.rds")
+```
+
+## Subset to HA coevolving residues
+
+ - Re-calculate Z-score with just HA pairs
+
+```{r}
+HA_MI <- polHA_MI %>%
+  filter(V1 > (759+757+716) & V2 > (759+757+716)) %>%
+  left_join(mi_network_info_ha, by = c("V1" = "index")) %>%
+  left_join(mi_network_info_ha, by = c("V2" = "index")) %>%
+  mutate(z_score = (mip/mean(mip))/sd(mip)) %>%
+  filter(z_score > 4)
+
+HA_MI_IDs <- HA_MI %>%
+  select(a = "id.x", b = "id.y", strength = z_score)
+
+# saveRDS(polMI_IDs,"/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/polMI.rds")
+
+visualize_subgraph_structure(
+  association_pairs = HA_MI_IDs,
+  node_info = mi_network_info_ha %>% select(-index),
+  trim_subgraph_results = FALSE,
+  default_step = "min_max_rule"
+)
+
+
+```
+
+## Plot amino acid frequencies
+
+```{r}
+known_epis <- HA_MI %>%
+  filter(V1 %in% c(2404, 2406, 2407, 2438, 2441, 2444) &
+           V2 %in% c(2404, 2406, 2407, 2438, 2441, 2444))
+
+library(igraph)
+t <- graph_from_data_frame(known_epis %>% select(id.x, id.y, "weight" = z_score))
+V(t)$size <- 8
+V(t)$frame.color <- "white"
+V(t)$color <- "orange"
+V(t)$label <- "" 
+E(t)$arrow.mode <- 0
+plot(t)
+
+fd <- layout_with_fr(t, weights = known_epis$z_score)
+plot(t, layout=fd)
+
+
+plot_example_freqs(c(2404, 2406, 2407, 2438, 2441, 2444))
+```
+
+
+
+
+
+```{r}
+
+HA_MI_grp <- HA_MI %>%
+  mutate(grp = (color.x == "lightgrey") + (color.y == "lightgrey"))
+
+ggplot(HA_MI_grp, aes(x = reorder(Group, z_score), y = z_score)) +
+  geom_point(alpha = 0.1, size = 1) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank(),
+        text = element_text(size = 12)) +
+  facet_wrap(~grp, ncol = 1) +
+  labs(y = "Z-score", x = "Observations ordered by Z-score")
+
+ggsave("../Figures/ha_antigenic_dist.pdf",
+       width = 5, height = 4)
+
+```
+
+
+
+
+
+
+
+
+

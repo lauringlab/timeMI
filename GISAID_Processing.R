@@ -111,7 +111,7 @@ saveRDS(seq_times_noHA, "data/seq_times_noHA_091122.rda")
 mi_network_info <- tibble(
   index = 1:2798,
   gene = c(rep("PB2", 759), rep("PB1", 757), rep("PA", 716), rep("HA", 566)),
-  id = c(1:759, 1:757, 1:716, 1:566)) %>%
+  id = c(1:759, 1:757, 1:716, -16:-1, 1:550)) %>%
   mutate(id = paste(gene, id, sep = "_"),
          color = case_when(
            str_detect(id, "PA") ~ "darkgrey",
@@ -121,7 +121,42 @@ mi_network_info <- tibble(
          )) %>%
   select(-gene)
 
+#antigenic site reference: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0092153#pone.0092153.s004
+siteA <- c(122, 124, 126, 130:133,
+           135, 137, 138, 140, 142:146,
+           150, 152, 168)
+siteB <- c(128, 129, 155:160, 163:165,
+           186:190, 192:194, 196:198)
+siteC <- c(44:48, 50, 51, 53, 54, 273,
+           275, 276, 278:280, 294, 297,
+           299, 300, 304, 305, 307:312)
+siteD <- c(96, 102, 103, 117, 121, 167,
+           170:177, 179, 182, 201, 203,
+           207:209, 212:219, 226:230, 238,
+           240, 242, 244, 246:248)
+siteE <- c(57, 59, 62, 63, 67, 75, 78,
+           80:83, 86:88, 91, 92, 94,
+           109, 260:262, 265)
+
+mi_network_info_ha <- tibble(
+  index = 2233:2798,
+  gene = c(rep("HA", 566)),
+  id = c(-16:-1, 1:550)) %>%
+  mutate(color = case_when(
+           id %in% siteA ~ "lightpink",
+           id %in% siteB ~ "darkblue",
+           id %in% siteC ~ "lightgreen",
+           id %in% siteD ~ "orange",
+           id %in% siteE ~ "lightblue",
+           TRUE ~ "lightgrey"
+         ),
+         id = paste(gene, id, sep = "_")) %>%
+  select(-gene)
+
 saveRDS(mi_network_info, "data/mi_network_info.rds")
 saveRDS(mi_network_info, "/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/mi_network_info.rds")
+
+saveRDS(mi_network_info_ha, "data/mi_network_info_ha.rds")
+saveRDS(mi_network_info_ha, "/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/mi_network_info_ha.rds")
 
 

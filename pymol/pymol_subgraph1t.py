@@ -32,16 +32,25 @@ cmd.color('grey40', 'ANP32A')
 cmd.orient()
 ###### END PREAMBLE
 
-metric = 'subgraph_2'
+metric = 'subgraph_1'
 
 # knownAdaptive
-for r in [559, 698]:
-	cmd.color('red', 'resi {0} and chain CP1+FP1'.format(r))
-	cmd.show('spheres', 'resi {{0}} and chain CP1+FP1'.format(r))
-	
-for r in [312, 343, 557, 573]:
-	cmd.color('grey20', 'resi {0} and chain AP1+DP1'.format(r))
-	cmd.show('spheres', 'resi {{0}} and chain AP1+DP1'.format(r))
+for r in [194, 227, 338, 569]:
+	cmd.color('red', 'resi {0} and chain CP1'.format(r))
+	cmd.show('spheres', 'resi {{0}} and chain CP1'.format(r))
+
+# for r in [227]:
+# 	cmd.color('orange', 'resi {0} and PB2'.format(r))
+# 	cmd.show('spheres', 'resi {{0}} and PB2'.format(r))
+# 
+# for r in [338]:
+# 	cmd.color('yellow', 'resi {0} and PB2'.format(r))
+# 	cmd.show('spheres', 'resi {{0}} and PB2'.format(r))
+# 
+# for r in [569]:
+# 	cmd.color('green', 'resi {0} and PB2'.format(r))
+# 	cmd.show('spheres', 'resi {{0}} and PB2'.format(r))
+
 
 ###### POSTAMBLE
 ##No ray for faster development
@@ -55,15 +64,12 @@ cmd.rotate('y', angle=180)
 cmd.rotate('x', angle=170)
 cmd.draw(width=1200, height=1000)
 cmd.png('{0}_{1}.png'.format(structure, metric))
-cmd.set('transparency', 0.8, 'chain AP1+BP1+CP1')
-cmd.set('transparency', 0.8, 'RNA')
+cmd.set('transparency', 0.8, 'chain EP1+DP1+FP1')
 cmd.draw(width=1200, height=1000)
 cmd.png('{0}_{1}_trans.png'.format(structure, metric))
-cmd.set('transparency', 0, 'chain AP1+BP1+CP1')
-cmd.set('transparency', 0, 'RNA')
-cmd.rotate('x', angle=-50)
-cmd.draw(width=1200, height=1000)
-cmd.png('{0}_{1}_x.png'.format(structure, metric))
+
+
+
 # cmd.rotate('y', angle=80)
 # cmd.rotate('x', angle=-90)
 # cmd.draw(width=1200, height=1000)
