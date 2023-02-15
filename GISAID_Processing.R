@@ -160,3 +160,21 @@ saveRDS(mi_network_info_ha, "data/mi_network_info_ha.rds")
 saveRDS(mi_network_info_ha, "/Users/sarcos/Desktop/Lauring Lab/MI_Networks_App/data/mi_network_info_ha.rds")
 
 
+
+
+############################## Make small example datasets#####################
+
+pb2_aa_sample <- sample(pb2_aa_al, 500) %>%
+  subseq()
+
+writeXStringSet(pb2_aa_sample, "/Users/sarcos/Desktop/Lauring Lab/weightedMI/inst/extdata/pb2_sample.fasta")
+
+pb2_meta <- as.data.frame(pb2_aa_sample) %>%
+  rownames_to_column() %>%
+  left_join(mt_filtered, by = c("rowname" = "Isolate_Id")) %>%
+  mutate(date = year(parse_date_time(Collection_Date, c("ymd", "ym", "y"))))  %>%
+  filter(!is.na(date)) %>%
+  select(ID = rowname, group = date)
+
+save(pb2_meta, file ="/Users/sarcos/Desktop/Lauring Lab/weightedMI/data/pb2_meta.rda")
+
