@@ -56,9 +56,10 @@ spiket <- translate(spike_nogap2)
  - Subset to get RBD
 
 ```{r}
-# writeXStringSet(spiket, "/Users/saraharcos/Downloads/spiket.fasta")
+# writeXStringSet(spiket, "../data/spiket.fasta")
 spiket_aligned <- readAAStringSet("../data/spiket_aligned.fasta")
 spikerbd <- subseq(spiket_aligned, start = 324, end = 546)
+# writeXStringSet(spikerbd, "../data/spikeRBD_aligned.fasta")
 ```
 
 ## Plot number of sequences and disease incidence
